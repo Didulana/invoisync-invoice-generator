@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'core/database/app_database.dart';
 import 'features/business_profile/screens/business_profile_screen.dart';
 import 'features/clients/screens/client_list_screen.dart';
+import 'features/catalog/screens/item_list_screen.dart';
 
 void main() {
   // Ensure the Flutter engine bindings are ready before launching native bindings (SQLite)
@@ -40,7 +41,7 @@ class InvoisyncApp extends StatelessWidget {
       ),
       themeMode: ThemeMode
           .system, // Automatically adapts to iOS/Android dark mode settings
-      home: const ClientListScreen(),
+      home: const ItemListScreen(),
     );
   }
 }
