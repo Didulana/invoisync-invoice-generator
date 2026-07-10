@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../core/database/app_database.dart';
-// import 'create_invoice_screen.dart'; // We will build this next!
+import 'create_invoice_screen.dart';
+import 'invoice_pdf_preview_screen.dart';
 
 class InvoiceListScreen extends StatefulWidget {
   const InvoiceListScreen({super.key});
@@ -108,7 +109,13 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                       ],
                     ),
                     onTap: () {
-                      // TODO: Open invoice details / PDF preview
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              InvoicePdfPreviewScreen(invoice: invoice),
+                        ),
+                      );
                     },
                   ),
                 );
@@ -116,17 +123,18 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          // TODO: Navigate to Create Invoice Screen
-          /*
+          // Navigate to Create Invoice Screen
           final created = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CreateInvoiceScreen()),
+            MaterialPageRoute(
+              builder: (context) => const CreateInvoiceScreen(),
+            ),
           );
-          if (created == true) _loadInvoices();
-          */
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Create Invoice screen coming next!')),
-          );
+
+          // If the screen returns true, refresh the dashboard to show the new invoice
+          if (created == true) {
+            _loadInvoices();
+          }
         },
         icon: const Icon(Icons.add),
         label: const Text('New Invoice'),
