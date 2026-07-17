@@ -176,6 +176,27 @@ class AppDatabase extends _$AppDatabase {
       invoiceLineItems,
     )..where((li) => li.invoiceId.equals(invoiceId))).get();
   }
+
+  // ==========================================
+  // 5. INVOICE MANAGEMENT
+  // ==========================================
+
+  // Deletes an invoice and safely removes all its attached line items
+  Future<void> deleteInvoice(String invoiceId) async {
+    await transaction(() async {
+      await (delete(
+        invoiceLineItems,
+      )..where((tbl) => tbl.invoiceId.equals(invoiceId))).go();
+      await (delete(invoices)..where((tbl) => tbl.id.equals(invoiceId))).go();
+    });
+  }
+
+  // Updates the status to 'paid' or 'unpaid'
+  Future<int> updateInvoiceStatus(String invoiceId, String newStatus) {
+    return (update(invoices)..where((tbl) => tbl.id.equals(invoiceId))).write(
+      InvoicesCompanion(status: Value(newStatus)),
+    );
+  }
 }
 
 LazyDatabase _openConnection() {

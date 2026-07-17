@@ -69,54 +69,131 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
               itemCount: _invoices.length,
               itemBuilder: (context, index) {
                 final invoice = _invoices[index];
-                return Card(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: _getStatusColor(
-                        invoice.status,
-                      ).withValues(alpha: 0.2),
-                      child: Icon(
-                        Icons.receipt,
-                        color: _getStatusColor(invoice.status),
+
+                return Dismissible(
+                  key: Key(invoice.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    color: Colors.red,
+                    child: const Icon(Icons.delete, color: Colors.white),
+                  ),
+                  confirmDismiss: (direction) async {
+                    return await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Delete Invoice?'),
+                          content: const Text('This action cannot be undone.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('CANCEL'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text(
+                                'DELETE',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  onDismissed: (direction) async {
+                    final database = Provider.of<AppDatabase>(
+                      context,
+                      listen: false,
+                    );
+                    await database.deleteInvoice(invoice.id);
+                    _loadInvoices();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Invoice deleted')),
+                    );
+                  },
+                  child: Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: _getStatusColor(
+                          invoice.status,
+                        ).withValues(alpha: 0.2),
+                        child: Icon(
+                          Icons.receipt,
+                          color: _getStatusColor(invoice.status),
+                        ),
                       ),
-                    ),
-                    title: Text(
-                      invoice.invoiceNumber,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      'Issued: ${DateFormat('MMM dd, yyyy').format(invoice.issueDate)}',
-                    ),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '\$${invoice.grandTotal.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                      title: Text(
+                        invoice.invoiceNumber,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        'Issued: ${DateFormat('MMM dd, yyyy').format(invoice.issueDate)}',
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '\$${invoice.grandTotal.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              Text(
+                                invoice.status.toUpperCase(),
+                                style: TextStyle(
+                                  color: _getStatusColor(invoice.status),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        Text(
-                          invoice.status.toUpperCase(),
-                          style: TextStyle(
-                            color: _getStatusColor(invoice.status),
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                          // Status Toggle Menu
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert),
+                            onSelected: (String result) async {
+                              final database = Provider.of<AppDatabase>(
+                                context,
+                                listen: false,
+                              );
+                              await database.updateInvoiceStatus(
+                                invoice.id,
+                                result,
+                              );
+                              _loadInvoices();
+                            },
+                            itemBuilder: (BuildContext context) =>
+                                <PopupMenuEntry<String>>[
+                                  const PopupMenuItem<String>(
+                                    value: 'unpaid',
+                                    child: Text('Mark as Unpaid'),
+                                  ),
+                                  const PopupMenuItem<String>(
+                                    value: 'paid',
+                                    child: Text('Mark as Paid'),
+                                  ),
+                                ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                InvoicePdfPreviewScreen(invoice: invoice),
+                          ),
+                        );
+                      },
                     ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              InvoicePdfPreviewScreen(invoice: invoice),
-                        ),
-                      );
-                    },
                   ),
                 );
               },
