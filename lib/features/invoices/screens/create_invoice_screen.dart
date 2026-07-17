@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
 import '../../../core/database/app_database.dart';
 
 // A temporary class to hold items before they are saved to the database
